@@ -4,8 +4,8 @@
 
 FlashFlow is a modern, AI-driven Next.js application that provides a user-friendly graphical interface for designing, simulating, and executing flash loans. It demystifies the complex world of decentralized finance (DeFi) by allowing users to define their strategies in natural language. The application leverages Google's Generative AI to generate the underlying Solidity logic, analyze the viability of the proposed transaction, and simulate the potential outcome before it's ever sent to the blockchain.
 
-![FlashFlow Screenshot](https://placehold.co/800x450.png)
-*<p align="center">A placeholder for the application's user interface.</p>*
+![FlashFlow Screenshot](public/UI.jpeg)
+*<p align="center">The FlashFlow user interface in action.</p>*
 
 ---
 
