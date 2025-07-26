@@ -1,3 +1,4 @@
+
 export type TransactionStatus = 'Pending' | 'Executing' | 'Completed' | 'Failed';
 
 export type Transaction = {
@@ -6,4 +7,6 @@ export type Transaction = {
   amount: number;
   status: TransactionStatus;
   timestamp: Date;
+  profit?: number;
+  error?: string;
 };

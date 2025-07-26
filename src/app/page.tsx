@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FlashLoanBuilder } from '@/components/flash-loan-builder';
 import { TransactionDashboard } from '@/components/transaction-dashboard';
 import { PageWrapper } from '@/components/page-wrapper';
@@ -12,11 +12,33 @@ import { BookCheck } from 'lucide-react';
 export default function Home() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
-  const addTransaction = (transaction: Omit<Transaction, 'id' | 'timestamp'>, success: boolean) => {
+  useEffect(() => {
+    try {
+      const storedTransactions = localStorage.getItem('flashflow-transactions');
+      if (storedTransactions) {
+        const parsed = JSON.parse(storedTransactions).map((tx: any) => ({
+          ...tx,
+          timestamp: new Date(tx.timestamp), // Dates need to be reconstructed
+        }));
+        setTransactions(parsed);
+      }
+    } catch (error) {
+      console.error("Could not load transactions from localStorage", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('flashflow-transactions', JSON.stringify(transactions));
+    } catch (error) {
+      console.error("Could not save transactions to localStorage", error);
+    }
+  }, [transactions]);
+
+  const addTransaction = (transaction: Omit<Transaction, 'id' | 'timestamp'>) => {
     const newTransaction: Transaction = {
       ...transaction,
       id: `fl-${Math.random().toString(36).substr(2, 9)}`,
-      status: success ? 'Completed' : 'Failed',
       timestamp: new Date(),
     };
     setTransactions(prev => [newTransaction, ...prev].sort((a,b) => b.timestamp.getTime() - a.timestamp.getTime()));

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -32,7 +33,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface FlashLoanBuilderProps {
-  onExecuteLoan: (transaction: Omit<Transaction, 'id' | 'status' | 'timestamp'>, success: boolean) => void;
+  onExecuteLoan: (transaction: Omit<Transaction, 'id' | 'timestamp'>) => void;
 }
 
 export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
@@ -58,7 +59,8 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
     if (watchedAsset && watchedAmount > 0) {
       form.setValue('strategy', `Borrow ${watchedAmount.toLocaleString()} ${watchedAsset}, perform an arbitrage trade on a DEX like Uniswap for a stablecoin like DAI, then repay the loan on a lending protocol like Aave.`);
     }
-  }, [watchedAsset, watchedAmount, form.setValue]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedAsset, watchedAmount]);
   
   const handleAnalyze: SubmitHandler<FormValues> = async (data) => {
     setIsAnalyzing(true);
@@ -107,7 +109,10 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
       onExecuteLoan({
         asset: form.getValues('asset'),
         amount: form.getValues('amount'),
-      }, result.success);
+        status: result.success ? 'Completed' : 'Failed',
+        profit: result.profit,
+        error: result.error,
+      });
 
       if (result.success) {
         toast({
