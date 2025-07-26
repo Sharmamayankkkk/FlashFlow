@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, Zap, Search, Code, CheckCircle, XCircle } from 'lucide-react';
+import { Loader2, Zap, Search, CheckCircle, XCircle } from 'lucide-react';
+import { Line, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,6 +20,7 @@ import type { Transaction } from '@/types';
 import { executeTransaction } from '@/services/blockchain-simulator';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Skeleton } from './ui/skeleton';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from './ui/chart';
 
 const formSchema = z.object({
   asset: z.string().min(1, 'Please select an asset.'),
@@ -170,7 +172,7 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
                     <FormItem>
                       <FormLabel>Amount</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="e.g., 1000" {...field} onChange={e => field.onChange(e.target.valueAsNumber || 0)} />
+                        <Input type="number" placeholder="e.g., 1000" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -209,7 +211,7 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
         <Card className="animate-in fade-in-50">
           <CardHeader>
             <CardTitle>Analysis Result</CardTitle>
-            <CardDescription>Review the AI-generated logic and its viability analysis.</CardDescription>
+            <CardDescription>Review the viability analysis and simulated performance.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {isAnalyzing && !analysisResult ? (
@@ -230,15 +232,43 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
                 </Alert>
 
                 <div>
-                    <h3 className="font-semibold flex items-center gap-2 mb-2">
-                        <Code />
-                        Generated Execution Logic
-                    </h3>
-                    <pre className="bg-muted p-4 rounded-lg text-xs overflow-x-auto">
-                        <code>
-                            {executionLogic}
-                        </code>
-                    </pre>
+                    <h3 className="font-semibold mb-2">Simulated PnL</h3>
+                     <ChartContainer config={{
+                        profit: {
+                          label: "Profit",
+                          color: analysisResult.viability === 'Viable' ? "hsl(var(--chart-2))" : "hsl(var(--destructive))",
+                        },
+                      }} className="h-[250px] w-full">
+                      <ResponsiveContainer>
+                        <LineChart data={analysisResult.pnlData}>
+                          <CartesianGrid vertical={false} />
+                          <XAxis 
+                            dataKey="time" 
+                            tickLine={false} 
+                            axisLine={false} 
+                            tickMargin={8} 
+                            tickFormatter={(value) => `T+${value}`}
+                          />
+                           <YAxis 
+                            tickLine={false} 
+                            axisLine={false} 
+                            tickMargin={8}
+                            tickFormatter={(value) => `$${value.toLocaleString()}`}
+                          />
+                          <Tooltip
+                            cursor={false}
+                            content={<ChartTooltipContent indicator="dot" />}
+                          />
+                          <Line
+                            dataKey="profit"
+                            type="natural"
+                            stroke="var(--color-profit)"
+                            strokeWidth={2}
+                            dot={false}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </ChartContainer>
                 </div>
                 
                 <Button onClick={handleExecute} disabled={isExecuting || analysisResult.viability !== 'Viable'} className="w-full">
