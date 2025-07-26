@@ -77,7 +77,7 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
         const result = await generateExecutionLogic({ 
             strategy: values.strategy,
             asset: values.asset,
-            amount: values.amount 
+            amount: Number(values.amount)
         });
         form.setValue('executionLogic', result.executionLogic, { shouldValidate: true });
     } catch (error) {
