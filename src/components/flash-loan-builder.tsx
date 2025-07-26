@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2 } from 'lucide-react';
+import { BrainCircuit, Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { simulateFlashLoanTransaction } from '@/ai/flows/validate-loan-viability';
+import { generateExecutionLogic } from '@/ai/flows/generate-execution-logic';
 import type { SimulateFlashLoanTransactionOutput } from '@/ai/flows/validate-loan-viability';
 import { SimulationResult } from './simulation-result';
 import type { Transaction } from '@/types';
@@ -21,6 +22,7 @@ import type { Transaction } from '@/types';
 const formSchema = z.object({
   asset: z.string().min(1, 'Please select an asset.'),
   amount: z.coerce.number().positive('Amount must be positive.'),
+  strategy: z.string(),
   executionLogic: z.string().min(10, 'Execution logic must be at least 10 characters.'),
 });
 
@@ -32,7 +34,8 @@ interface FlashLoanBuilderProps {
 
 export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [simulationResult, setSimulationResult] = useState<SimulateFlashLoanTransactionOutput | null>(null);
 
   const form = useForm<FormValues>({
@@ -40,6 +43,7 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
     defaultValues: {
       asset: '',
       amount: 1000,
+      strategy: 'Borrow 1000 ETH, perform an arbitrage trade on Uniswap for DAI, then repay the loan on Aave.',
       executionLogic: `// Example: Arbitrage between two DEXs
 // 1. Borrow asset from Pool A.
 // 2. Swap borrowed asset for another asset on DEX B.
@@ -49,11 +53,41 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
     },
   });
 
-  const onSubmit: SubmitHandler<FormValues> = async (data) => {
-    setLoading(true);
+  const handleGenerateLogic = async () => {
+    const strategy = form.getValues('strategy');
+    if (!strategy) {
+        toast({
+            variant: 'destructive',
+            title: 'Strategy is empty',
+            description: 'Please describe your strategy to generate the logic.',
+        });
+        return;
+    }
+    setIsGenerating(true);
+    try {
+        const result = await generateExecutionLogic({ strategy });
+        form.setValue('executionLogic', result.executionLogic, { shouldValidate: true });
+    } catch (error) {
+        console.error('Logic generation failed:', error);
+        toast({
+            variant: 'destructive',
+            title: 'Generation Failed',
+            description: 'An unexpected error occurred while generating the logic.',
+        });
+    } finally {
+        setIsGenerating(false);
+    }
+  }
+
+  const onSimulate: SubmitHandler<FormValues> = async (data) => {
+    setIsSimulating(true);
     setSimulationResult(null);
     try {
-      const result = await simulateFlashLoanTransaction(data);
+      const result = await simulateFlashLoanTransaction({
+        asset: data.asset,
+        amount: data.amount,
+        executionLogic: data.executionLogic,
+      });
       setSimulationResult(result);
     } catch (error) {
       console.error('Simulation failed:', error);
@@ -63,7 +97,7 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
         description: 'An unexpected error occurred during simulation.',
       });
     } finally {
-      setLoading(false);
+      setIsSimulating(false);
     }
   };
   
@@ -92,6 +126,7 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
       form.reset({
         asset: '',
         amount: 1000,
+        strategy: 'Borrow 1000 ETH, perform an arbitrage trade on Uniswap for DAI, then repay the loan on Aave.',
         executionLogic: `// Example: Arbitrage between two DEXs
 // 1. Borrow asset from Pool A.
 // 2. Swap borrowed asset for another asset on DEX B.
@@ -110,7 +145,7 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSimulate)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -152,13 +187,37 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
 
             <FormField
               control={form.control}
+              name="strategy"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Strategy Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Describe your loan strategy in plain English..."
+                      className="min-h-[100px] text-sm"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <Button type="button" variant="secondary" onClick={handleGenerateLogic} disabled={isGenerating || isSimulating} className="w-full">
+              {isGenerating ? <Loader2 className="animate-spin" /> : <BrainCircuit />}
+              Generate Execution Logic with AI
+            </Button>
+
+
+            <FormField
+              control={form.control}
               name="executionLogic"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Execution Logic</FormLabel>
+                  <FormLabel>Execution Logic (Solidity)</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Enter your smart contract logic here..."
+                      placeholder="Enter your smart contract logic here, or generate it with AI."
                       className="min-h-[200px] font-mono text-sm"
                       {...field}
                     />
@@ -168,8 +227,8 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
               )}
             />
 
-            <Button type="submit" disabled={loading} className="w-full">
-              {loading ? <Loader2 className="animate-spin" /> : 'Simulate Transaction'}
+            <Button type="submit" disabled={isSimulating || isGenerating} className="w-full">
+              {isSimulating ? <Loader2 className="animate-spin" /> : 'Simulate Transaction'}
             </Button>
           </form>
         </Form>
@@ -179,7 +238,6 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
                 result={simulationResult} 
                 onExecute={handleExecute}
                 onClear={handleClear}
-                isExecuting={loading}
             />
         )}
       </CardContent>

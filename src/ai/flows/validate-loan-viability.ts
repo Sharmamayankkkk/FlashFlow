@@ -18,10 +18,16 @@ const SimulateFlashLoanTransactionInputSchema = z.object({
 });
 export type SimulateFlashLoanTransactionInput = z.infer<typeof SimulateFlashLoanTransactionInputSchema>;
 
+const ProfitAndLossDataPointSchema = z.object({
+    time: z.number().describe('The timestamp of the data point, as a numerical value.'),
+    profit: z.number().describe('The profit or loss at this point in time.'),
+});
+
 const SimulateFlashLoanTransactionOutputSchema = z.object({
   isViable: z.boolean().describe('Whether the flash loan transaction is viable.'),
   riskAssessment: z.string().describe('A detailed risk assessment of the flash loan transaction.'),
   feedback: z.string().describe('Feedback and recommendations for the user based on the simulation.'),
+  profitAndLossData: z.array(ProfitAndLossDataPointSchema).describe('An array of profit and loss data points over the course of the simulated transaction.'),
 });
 export type SimulateFlashLoanTransactionOutput = z.infer<typeof SimulateFlashLoanTransactionOutputSchema>;
 
@@ -36,6 +42,8 @@ const prompt = ai.definePrompt({
   prompt: `You are an AI-powered simulation tool for flash loan transactions. Your role is to assess the viability of a flash loan transaction before it is executed on the blockchain.
 
   Based on the provided information, evaluate the potential risks and provide feedback to the user. Set the isViable output field appropriately.
+
+  In addition, generate a series of 10-15 data points to simulate the profit and loss over the very short duration of the flash loan. This data will be used to create a chart.
 
   Asset: {{{asset}}}
   Amount: {{{amount}}}
