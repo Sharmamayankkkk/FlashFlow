@@ -88,7 +88,7 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
   };
 
   const handleExecute = async () => {
-    if (!executionLogic) {
+    if (!executionLogic || !analysisResult) {
         toast({
             variant: 'destructive',
             title: 'Missing Execution Logic',
@@ -98,7 +98,11 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
     }
     setIsExecuting(true);
     try {
-      const result = await executeTransaction({ executionLogic });
+      const result = await executeTransaction({ 
+        executionLogic,
+        isViable: analysisResult.viability === 'Viable',
+      });
+      
       onExecuteLoan({
         asset: form.getValues('asset'),
         amount: form.getValues('amount'),
@@ -272,7 +276,7 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
                     </ChartContainer>
                 </div>
                 
-                <Button onClick={handleExecute} disabled={isExecuting || analysisResult.viability !== 'Viable'} className="w-full">
+                <Button onClick={handleExecute} disabled={isExecuting} className="w-full">
                   {isExecuting ? <Loader2 className="animate-spin" /> : <Zap />}
                   Execute Transaction
                 </Button>

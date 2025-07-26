@@ -7,6 +7,7 @@
 
 interface TransactionInput {
     executionLogic: string;
+    isViable: boolean; // Added to respect the AI's analysis
 }
 
 interface TransactionResult {
@@ -18,11 +19,10 @@ interface TransactionResult {
 export async function executeTransaction(input: TransactionInput): Promise<TransactionResult> {
     console.log("Simulating transaction with logic:", input.executionLogic);
 
-    // Placeholder: Simulate a random outcome
+    // Placeholder: Simulate an outcome based on the AI's viability assessment
     return new Promise(resolve => {
         setTimeout(() => {
-            const isSuccess = Math.random() > 0.3; // 70% chance of success
-            if (isSuccess) {
+            if (input.isViable) {
                 resolve({
                     success: true,
                     profit: Math.random() * 0.5, // Random profit between 0 and 0.5 ETH
