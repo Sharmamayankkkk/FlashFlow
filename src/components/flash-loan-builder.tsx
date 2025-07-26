@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Zap } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,11 +13,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { simulateFlashLoanTransaction } from '@/ai/flows/validate-loan-viability';
 import { generateExecutionLogic } from '@/ai/flows/generate-execution-logic';
-import type { SimulateFlashLoanTransactionOutput } from '@/ai/flows/validate-loan-viability';
-import { SimulationResult } from './simulation-result';
 import type { Transaction } from '@/types';
+import { executeTransaction } from '@/services/blockchain-simulator';
 
 const formSchema = z.object({
   asset: z.string().min(1, 'Please select an asset.'),
@@ -33,8 +31,8 @@ interface FlashLoanBuilderProps {
 
 export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
   const { toast } = useToast();
-  const [isSimulating, setIsSimulating] = useState(false);
-  const [simulationResult, setSimulationResult] = useState<SimulateFlashLoanTransactionOutput | null>(null);
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [executionLogic, setExecutionLogic] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -54,53 +52,69 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
     }
   }, [watchedAsset, watchedAmount, form.setValue]);
 
-  const onSimulate: SubmitHandler<FormValues> = async (data) => {
-    setIsSimulating(true);
-    setSimulationResult(null);
+  const onGenerateCode: SubmitHandler<FormValues> = async (data) => {
+    setIsExecuting(true);
+    setExecutionLogic(null);
     try {
-      // Step 1: Generate execution logic in the background
       const logicResult = await generateExecutionLogic({
         asset: data.asset,
         amount: Number(data.amount),
         strategy: data.strategy,
       });
-
-      // Step 2: Run simulation with the generated logic
-      const simResult = await simulateFlashLoanTransaction({
-        asset: data.asset,
-        amount: data.amount,
-        executionLogic: logicResult.executionLogic,
-      });
-      setSimulationResult(simResult);
+      setExecutionLogic(logicResult.executionLogic);
     } catch (error) {
-      console.error('Simulation failed:', error);
+      console.error('Code generation failed:', error);
       toast({
         variant: 'destructive',
-        title: 'Simulation Failed',
-        description: 'An unexpected error occurred during simulation.',
+        title: 'Code Generation Failed',
+        description: 'An unexpected error occurred while generating the code.',
       });
     } finally {
-      setIsSimulating(false);
+      setIsExecuting(false);
     }
   };
   
-  const handleExecute = () => {
-    if (simulationResult && simulationResult.isViable) {
-      const values = form.getValues();
-      onExecuteLoan({
-        asset: values.asset,
-        amount: values.amount,
-      });
-      toast({
-        title: 'Transaction Initiated',
-        description: 'Your flash loan has been sent to the network.',
-      });
+  const handleExecute = async () => {
+    if (executionLogic) {
+      setIsExecuting(true);
+      try {
+        // Here you would call the real blockchain simulation service
+        const result = await executeTransaction({
+            executionLogic
+        });
+
+        if (result.success) {
+            const values = form.getValues();
+            onExecuteLoan({
+              asset: values.asset,
+              amount: values.amount,
+            });
+            toast({
+              title: 'Transaction Successful',
+              description: `Profit: ${result.profit} ETH`,
+            });
+        } else {
+             toast({
+                variant: 'destructive',
+                title: 'Transaction Failed',
+                description: result.error,
+            });
+        }
+      } catch (error) {
+        toast({
+            variant: 'destructive',
+            title: 'Execution Error',
+            description: 'An unexpected error occurred during execution.',
+        });
+      } finally {
+          setIsExecuting(false);
+      }
       handleClear();
     } else {
         toast({
             variant: 'destructive',
             title: 'Execution Failed',
-            description: 'Cannot execute a non-viable transaction.',
+            description: 'Please generate the execution logic first.',
         });
     }
   };
@@ -111,18 +125,18 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
         amount: 1000,
         strategy: '',
       });
-      setSimulationResult(null);
+      setExecutionLogic(null);
   };
 
   return (
     <Card className="h-full">
       <CardHeader>
         <CardTitle>Flash Loan Builder</CardTitle>
-        <CardDescription>Describe your strategy and simulate its viability.</CardDescription>
+        <CardDescription>Describe your strategy to generate and execute a flash loan.</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSimulate)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onGenerateCode)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -180,18 +194,29 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
               )}
             />
 
-            <Button type="submit" disabled={isSimulating} className="w-full">
-              {isSimulating ? <Loader2 className="animate-spin" /> : 'Simulate Transaction'}
+            <Button type="submit" disabled={isExecuting} className="w-full">
+              {isExecuting && !executionLogic ? <Loader2 className="animate-spin" /> : 'Generate Execution Logic'}
             </Button>
           </form>
         </Form>
         
-        {simulationResult && (
-            <SimulationResult 
-                result={simulationResult} 
-                onExecute={handleExecute}
-                onClear={handleClear}
-            />
+        {executionLogic && (
+             <div className="mt-6 animate-in fade-in-50">
+                <Textarea
+                    readOnly
+                    value={executionLogic}
+                    className="min-h-[200px] text-xs font-mono bg-muted"
+                />
+                <div className="mt-6 flex flex-col sm:flex-row gap-4">
+                    <Button onClick={handleClear} variant="outline" className="w-full">
+                        Clear
+                    </Button>
+                    <Button onClick={handleExecute} disabled={isExecuting} className="w-full">
+                        {isExecuting ? <Loader2 className="animate-spin" /> : <Zap />}
+                        Execute Transaction
+                    </Button>
+                </div>
+            </div>
         )}
       </CardContent>
     </Card>

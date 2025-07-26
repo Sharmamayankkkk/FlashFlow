@@ -13,20 +13,17 @@ export default function Home() {
     const newTransaction: Transaction = {
       ...transaction,
       id: `fl-${Math.random().toString(36).substr(2, 9)}`,
-      status: 'Pending',
+      status: 'Executing', // Start as executing
       timestamp: new Date(),
     };
     setTransactions(prev => [newTransaction, ...prev]);
   };
 
-  // Simulate transaction status updates
+  // Simulate transaction status updates from executing to completed/failed
   useEffect(() => {
     const interval = setInterval(() => {
       setTransactions(currentTransactions =>
         currentTransactions.map(tx => {
-          if (tx.status === 'Pending') {
-            return { ...tx, status: 'Executing' };
-          }
           if (tx.status === 'Executing') {
             // Randomly succeed or fail
             const succeeds = Math.random() > 0.2;
