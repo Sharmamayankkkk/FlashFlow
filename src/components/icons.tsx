@@ -14,7 +14,7 @@ export function FlashFlowLogo(props: SVGProps<SVGSVGElement>) {
       strokeLinejoin="round"
       {...props}
     >
-      <path d="M13 10.25h4.5l-5.25 6v-3.75H8l5.25-6.25v4Z" fill="hsl(var(--accent))" stroke="none"/>
+      <path d="M13 10.25h4.5l-5.25 6v-3.75H8l5.25-6.25v4Z" fill="hsl(var(--primary))" stroke="none"/>
       <circle cx="12" cy="12" r="10" stroke="hsl(var(--primary))" />
     </svg>
   );

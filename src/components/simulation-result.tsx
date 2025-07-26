@@ -18,7 +18,7 @@ interface SimulationResultProps {
 const chartConfig = {
   profit: {
     label: "Profit",
-    color: "hsl(var(--accent))",
+    color: "hsl(var(--primary))",
   },
 } satisfies ChartConfig
 
@@ -35,7 +35,7 @@ export function SimulationResult({ result, onExecute, onClear }: SimulationResul
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>Viability Status</span>
-            <Badge variant={isViable ? 'default' : 'destructive'} className={isViable ? 'bg-accent text-accent-foreground hover:bg-accent/90' : ''}>
+            <Badge variant={isViable ? 'default' : 'destructive'} >
               {isViable ? (
                 <CheckCircle className="mr-2 h-4 w-4" />
               ) : (
@@ -51,19 +51,19 @@ export function SimulationResult({ result, onExecute, onClear }: SimulationResul
                     <AreaChart data={profitAndLossData} margin={{ left: 0, right: 0, top: 10, bottom: 0 }}>
                         <defs>
                             <linearGradient id="fillProfit" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor={isProfit ? 'hsl(var(--accent))' : 'hsl(var(--destructive))'} stopOpacity={0.8} />
-                                <stop offset="95%" stopColor={isProfit ? 'hsl(var(--accent))' : 'hsl(var(--destructive))'} stopOpacity={0.1} />
+                                <stop offset="5%" stopColor={isProfit ? 'hsl(var(--primary))' : 'hsl(var(--destructive))'} stopOpacity={0.8} />
+                                <stop offset="95%" stopColor={isProfit ? 'hsl(var(--primary))' : 'hsl(var(--destructive))'} stopOpacity={0.1} />
                             </linearGradient>
                         </defs>
                         <CartesianGrid vertical={false} strokeDasharray="3 3" />
                         <XAxis dataKey="time" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `T+${value}`} />
                         <YAxis tickLine={false} axisLine={false} tickMargin={8} />
-                        <Tooltip cursor={{fill: 'hsl(var(--card))'}} content={<ChartTooltipContent />} />
+                        <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
                         <Area
                             dataKey="profit"
                             type="natural"
                             fill="url(#fillProfit)"
-                            stroke={isProfit ? 'hsl(var(--accent))' : 'hsl(var(--destructive))'}
+                            stroke={isProfit ? 'hsl(var(--primary))' : 'hsl(var(--destructive))'}
                         />
                     </AreaChart>
                 </ChartContainer>
