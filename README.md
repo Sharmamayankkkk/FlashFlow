@@ -39,21 +39,21 @@ The diagram below illustrates the complete user workflow, from defining a strate
 ```mermaid
 graph TD
     A[Start: User opens FlashFlow] --> B{Define Strategy};
-    B --> C[User enters Asset, Amount, and Strategy Description];
-    C --> D[User clicks "Analyze Strategy"];
-    D --> E[1. generateExecutionLogic AI Flow];
-    E --> F[AI generates Solidity code];
-    F --> G[2. simulateFlashLoanTransaction AI Flow];
-    G --> H{AI analyzes code & simulates transaction};
-    H --> I[AI returns Viability, Rationale, and P&L data];
-    I --> J{Display Analysis to User};
-    J --> K[Show Viability Status, Rationale, and P&L Chart];
-    K --> L{User reviews analysis};
-    L --> M[User clicks "Execute Transaction"];
-    M --> N[3. blockchain-simulator Service];
-    N --> O{Simulate execution based on AI viability};
-    O --> P[Return Success/Fail status, Profit, or Error];
-    P --> Q[Update Transaction Dashboard];
+    B --> C["User enters Asset, Amount, & Strategy Description"];
+    C --> D["User clicks 'Analyze Strategy'"];
+    D --> E["1. generateExecutionLogic AI Flow"];
+    E --> F["AI generates Solidity code"];
+    F --> G["2. simulateFlashLoanTransaction AI Flow"];
+    G --> H{"AI analyzes code & simulates transaction"};
+    H --> I["AI returns Viability, Rationale, and P&L data"];
+    I --> J{"Display Analysis to User"};
+    J --> K["Show Viability Status, Rationale, and P&L Chart"];
+    K --> L{"User reviews analysis"};
+    L --> M["User clicks 'Execute Transaction'"];
+    M --> N["3. blockchain-simulator Service"];
+    N --> O{"Simulate execution based on AI viability"};
+    O --> P["Return Success/Fail status, Profit, or Error"];
+    P --> Q["Update Transaction Dashboard"];
     Q --> B;
 
     style E fill:#f9f,stroke:#333,stroke-width:2px;
@@ -123,7 +123,7 @@ To get a local copy up and running, follow these simple steps.
 
 1.  **Clone the repo**
     ```sh
-    git clone https://github.com/your-repo-url/flashflow.git
+    git clone https://github.com/Sharmamayankkkk/FlashFlow.git
     cd flashflow
     ```
 2.  **Install NPM packages**
