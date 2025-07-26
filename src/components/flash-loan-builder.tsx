@@ -31,7 +31,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface FlashLoanBuilderProps {
-  onExecuteLoan: (transaction: Omit<Transaction, 'id' | 'status' | 'timestamp'>) => void;
+  onExecuteLoan: (transaction: Omit<Transaction, 'id' | 'status' | 'timestamp'>, success: boolean) => void;
 }
 
 export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
@@ -99,11 +99,12 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
     setIsExecuting(true);
     try {
       const result = await executeTransaction({ executionLogic });
+      onExecuteLoan({
+        asset: form.getValues('asset'),
+        amount: form.getValues('amount'),
+      }, result.success);
+
       if (result.success) {
-        onExecuteLoan({
-          asset: form.getValues('asset'),
-          amount: form.getValues('amount'),
-        });
         toast({
           title: 'Transaction Sent!',
           description: 'Your transaction is being processed on the network.',

@@ -9,33 +9,15 @@ import type { Transaction } from '@/types';
 export default function Home() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
-  const addTransaction = (transaction: Omit<Transaction, 'id' | 'status' | 'timestamp'>) => {
+  const addTransaction = (transaction: Omit<Transaction, 'id' | 'timestamp'>, success: boolean) => {
     const newTransaction: Transaction = {
       ...transaction,
       id: `fl-${Math.random().toString(36).substr(2, 9)}`,
-      status: 'Executing', // Start as executing
+      status: success ? 'Completed' : 'Failed',
       timestamp: new Date(),
     };
-    setTransactions(prev => [newTransaction, ...prev]);
+    setTransactions(prev => [newTransaction, ...prev].sort((a,b) => b.timestamp.getTime() - a.timestamp.getTime()));
   };
-
-  // Simulate transaction status updates from executing to completed/failed
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTransactions(currentTransactions =>
-        currentTransactions.map(tx => {
-          if (tx.status === 'Executing') {
-            // Randomly succeed or fail
-            const succeeds = Math.random() > 0.2;
-            return { ...tx, status: succeeds ? 'Completed' : 'Failed' };
-          }
-          return tx;
-        }).sort((a,b) => b.timestamp.getTime() - a.timestamp.getTime())
-      );
-    }, 5000); // Update every 5 seconds
-
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <PageWrapper>
