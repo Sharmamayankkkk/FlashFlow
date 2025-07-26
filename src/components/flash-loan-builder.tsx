@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Loader2, Zap, Search, CheckCircle, XCircle } from 'lucide-react';
 import { Line, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import ReactMarkdown from 'react-markdown';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -232,7 +233,9 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
                   {analysisResult.viability === 'Viable' ? <CheckCircle className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
                   <AlertTitle>Viability Status: {analysisResult.viability}</AlertTitle>
                   <AlertDescription>
-                    {analysisResult.rationale}
+                    <ReactMarkdown className="prose prose-sm prose-p:text-current dark:prose-invert">
+                      {analysisResult.rationale}
+                    </ReactMarkdown>
                   </AlertDescription>
                 </Alert>
 
@@ -276,7 +279,7 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
                     </ChartContainer>
                 </div>
                 
-                <Button onClick={handleExecute} disabled={isExecuting} className="w-full">
+                <Button onClick={handleExecute} disabled={isExecuting || analysisResult.viability === 'Not Viable'} className="w-full">
                   {isExecuting ? <Loader2 className="animate-spin" /> : <Zap />}
                   Execute Transaction
                 </Button>
