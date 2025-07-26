@@ -15,7 +15,7 @@ interface TransactionDashboardProps {
 const statusClasses: Record<TransactionStatus, string> = {
   Pending: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
   Executing: 'bg-primary text-primary-foreground hover:bg-primary/90 animate-pulse',
-  Completed: 'bg-accent text-accent-foreground hover:bg-accent/90',
+  Completed: 'bg-accent/20 text-accent border border-accent/40 hover:bg-accent/30',
   Failed: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
 };
 
@@ -44,7 +44,7 @@ export function TransactionDashboard({ transactions }: TransactionDashboardProps
                         <TableCell className="font-medium">{tx.asset}</TableCell>
                         <TableCell>{tx.amount.toLocaleString()}</TableCell>
                         <TableCell>
-                        <Badge className={cn('whitespace-nowrap border-transparent', statusClasses[tx.status])}>
+                        <Badge className={cn('whitespace-nowrap', statusClasses[tx.status])}>
                             {tx.status}
                         </Badge>
                         </TableCell>
