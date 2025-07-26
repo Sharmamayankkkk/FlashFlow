@@ -28,7 +28,14 @@ FlashFlow solves this problem by providing an intuitive graphical user interface
 -   **AI Transaction Simulation:** Before execution, an AI-powered analyst simulates the transaction, assessing its viability and estimating potential profit or loss.
 -   **Interactive P&L Chart:** Visualize the simulated financial performance of your strategy with a clear and dynamic chart.
 -   **Persistent Transaction Dashboard:** Monitor the status and review the profit/loss or error messages of your past flash loan attempts.
--   **Built with Modern Tech:** Next.js, TypeScript, ShadCN UI, Tailwind CSS, and Google AI (Genkit) for AI integration.
+-   **Built with Modern Tech:**
+    -   **Framework:** [Next.js](https://nextjs.org/) (App Router)
+    -   **Language:** [TypeScript](https://www.typescriptlang.org/)
+    -   **AI Integration:** [Google AI (Genkit)](https://firebase.google.com/docs/genkit)
+    -   **UI Components:** [ShadCN UI](https://ui.shadcn.com/)
+    -   **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+    -   **Charting:** [Recharts](https://recharts.org/)
+    -   **Schema Validation:** [Zod](https://zod.dev/)
 
 ---
 
@@ -124,7 +131,7 @@ To get a local copy up and running, follow these simple steps.
 1.  **Clone the repo**
     ```sh
     git clone https://github.com/Sharmamayankkkk/FlashFlow.git
-    cd flashflow
+    cd FlashFlow
     ```
 2.  **Install NPM packages**
     ```sh
