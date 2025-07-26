@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -43,7 +43,7 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
     defaultValues: {
       asset: '',
       amount: 1000,
-      strategy: 'Borrow 1000 ETH, perform an arbitrage trade on Uniswap for DAI, then repay the loan on Aave.',
+      strategy: '',
       executionLogic: `// Example: Arbitrage between two DEXs
 // 1. Borrow asset from Pool A.
 // 2. Swap borrowed asset for another asset on DEX B.
@@ -53,9 +53,18 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
     },
   });
 
+  const watchedAsset = form.watch('asset');
+  const watchedAmount = form.watch('amount');
+
+  useEffect(() => {
+    const asset = watchedAsset || 'ETH';
+    const amount = watchedAmount || 1000;
+    form.setValue('strategy', `Borrow ${amount} ${asset}, perform an arbitrage trade on a DEX like Uniswap for a stablecoin like DAI, then repay the loan on a lending protocol like Aave.`);
+  }, [watchedAsset, watchedAmount, form.setValue]);
+
   const handleGenerateLogic = async () => {
-    const strategy = form.getValues('strategy');
-    if (!strategy) {
+    const values = form.getValues();
+    if (!values.strategy) {
         toast({
             variant: 'destructive',
             title: 'Strategy is empty',
@@ -65,7 +74,11 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
     }
     setIsGenerating(true);
     try {
-        const result = await generateExecutionLogic({ strategy });
+        const result = await generateExecutionLogic({ 
+            strategy: values.strategy,
+            asset: values.asset,
+            amount: values.amount 
+        });
         form.setValue('executionLogic', result.executionLogic, { shouldValidate: true });
     } catch (error) {
         console.error('Logic generation failed:', error);
@@ -126,7 +139,7 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
       form.reset({
         asset: '',
         amount: 1000,
-        strategy: 'Borrow 1000 ETH, perform an arbitrage trade on Uniswap for DAI, then repay the loan on Aave.',
+        strategy: '',
         executionLogic: `// Example: Arbitrage between two DEXs
 // 1. Borrow asset from Pool A.
 // 2. Swap borrowed asset for another asset on DEX B.

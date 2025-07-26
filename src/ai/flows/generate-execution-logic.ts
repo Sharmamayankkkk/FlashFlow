@@ -12,6 +12,8 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const GenerateExecutionLogicInputSchema = z.object({
+  asset: z.string().describe('The asset to be used in the flash loan.'),
+  amount: z.number().describe('The amount of the asset to be borrowed.'),
   strategy: z.string().describe('The user-defined strategy in natural language.'),
 });
 export type GenerateExecutionLogicInput = z.infer<typeof GenerateExecutionLogicInputSchema>;
@@ -32,6 +34,8 @@ const prompt = ai.definePrompt({
     output: {schema: GenerateExecutionLogicOutputSchema},
     prompt: `You are an expert in writing Solidity smart contracts for flash loans. Based on the user's strategy, generate the execution logic. The code should be well-commented and follow best practices.
 
+    Asset: {{{asset}}}
+    Amount: {{{amount}}}
     Strategy: {{{strategy}}}
     `,
 });
