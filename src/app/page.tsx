@@ -1,11 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Header } from '@/components/header';
 import { FlashLoanBuilder } from '@/components/flash-loan-builder';
 import { TransactionDashboard } from '@/components/transaction-dashboard';
 import { PageWrapper } from '@/components/page-wrapper';
-import { InfoCards } from '@/components/info-cards';
 import type { Transaction } from '@/types';
 
 export default function Home() {
@@ -50,7 +48,6 @@ export default function Home() {
         </div>
         <div className="lg:col-span-2 space-y-8">
           <TransactionDashboard transactions={transactions} />
-          <InfoCards />
         </div>
       </div>
     </PageWrapper>
