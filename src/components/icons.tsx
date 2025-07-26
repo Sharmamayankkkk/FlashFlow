@@ -1,12 +1,9 @@
 import type { SVGProps } from 'react';
 
-// This component is no longer used, but kept in case of future use.
 export function FlashFlowLogo(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
