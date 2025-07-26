@@ -6,7 +6,8 @@ import { TransactionDashboard } from '@/components/transaction-dashboard';
 import { PageWrapper } from '@/components/page-wrapper';
 import type { Transaction } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookCheck } from 'lucide-react';
+import { BookCheck, FileQuestion, ShieldAlert } from 'lucide-react';
+import { InfoCards } from '@/components/info-cards';
 
 export default function Home() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -28,6 +29,7 @@ export default function Home() {
           <FlashLoanBuilder onExecuteLoan={addTransaction} />
         </div>
         <div className="lg:col-span-2 space-y-8">
+          <InfoCards />
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
