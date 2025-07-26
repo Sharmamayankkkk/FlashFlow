@@ -1,0 +1,1 @@
+[Flash loans](https://docs.aave.com/developers/tutorials/performing-a-flash-loan) being a recent development with no analogue in the real world can be hard for laymen to implement and take advantage of. An easy to use GUI where users can set the parameters would help increase adoption massively.
