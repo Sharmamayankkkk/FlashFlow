@@ -1,5 +1,6 @@
 import type { SVGProps } from 'react';
 
+// This component is no longer used, but kept in case of future use.
 export function FlashFlowLogo(props: SVGProps<SVGSVGElement>) {
   return (
     <svg

@@ -1,7 +1,7 @@
 'use server';
 
 /**
- * @fileOverview Analyzes the viability of a flash loan's execution logic.
+ * @fileOverview Analyzes the viability and risks of a flash loan's execution logic.
  *
  * - simulateFlashLoanTransaction - A function that simulates the transaction.
  * - SimulateFlashLoanTransactionInput - The input type for the function.
@@ -23,6 +23,11 @@ const SimulateFlashLoanTransactionOutputSchema = z.object({
     time: z.number().describe("The time step, from 0 to 10."),
     profit: z.number().describe("The simulated profit or loss at this time step."),
   })).describe('An array of profit/loss data points over 10 time steps to illustrate the transaction\'s performance.'),
+  riskScore: z.number().min(1).max(10).describe('A score from 1 (low risk) to 10 (high risk).'),
+  riskBreakdown: z.array(z.object({
+    risk: z.string().describe('The name of the identified risk.'),
+    description: z.string().describe('A brief explanation of the risk.'),
+  })).describe('A breakdown of the specific risks identified.'),
 });
 export type SimulateFlashLoanTransactionOutput = z.infer<typeof SimulateFlashLoanTransactionOutputSchema>;
 
@@ -34,19 +39,20 @@ const prompt = ai.definePrompt({
     name: 'simulateFlashLoanTransactionPrompt',
     input: {schema: SimulateFlashLoanTransactionInputSchema},
     output: {schema: SimulateFlashLoanTransactionOutputSchema},
-    prompt: `You are a blockchain security expert and DeFi analyst. Your task is to analyze the provided smart contract execution logic for a flash loan and determine its viability.
+    prompt: `You are a blockchain security expert and DeFi analyst. Your task is to analyze the provided smart contract execution logic for a flash loan and determine its viability and associated risks.
 
     Analyze the following code:
     {{{executionLogic}}}
 
-    Based on your analysis, determine if the strategy is 'Viable' or 'Not Viable'. A viable strategy should be profitable and have a high chance of success. Default to 'Viable' unless you see clear and high-probability risks (e.g., obvious logic errors, high gas costs that would negate profit, reliance on highly volatile assets with no slippage protection).
-
-    Also, generate a list of 10 profit-and-loss data points (pnlData) to simulate the transaction's financial performance over time.
-    - If the transaction is 'Viable', the profit should generally trend upwards, ending with a positive value.
-    - If it's 'Not Viable', the profit should trend downwards, ending with a negative value.
-    - Start the profit at 0 for time 0.
-    
-    Provide a concise rationale for your decision.
+    Based on your analysis, you must perform the following actions:
+    1.  **Viability Assessment**: Determine if the strategy is 'Viable' or 'Not Viable'. A viable strategy should be profitable and have a high chance of success. Default to 'Viable' unless you see clear and high-probability risks (e.g., obvious logic errors, high gas costs that would negate profit, reliance on highly volatile assets with no slippage protection).
+    2.  **P&L Simulation**: Generate a list of 10 profit-and-loss data points (pnlData) to simulate the transaction's financial performance.
+        - If the transaction is 'Viable', the profit should generally trend upwards, ending positive.
+        - If it's 'Not Viable', the profit should trend downwards, ending negative.
+        - Start profit at 0 for time 0.
+    3.  **Risk Score**: Assign a 'riskScore' from 1 (very low risk) to 10 (extremely high risk). Base this on factors like code complexity, reliance on market conditions, and potential for slippage or high gas fees. A simple, direct arbitrage should be low risk, while a multi-step process involving volatile assets should be higher risk.
+    4.  **Risk Breakdown**: Provide a 'riskBreakdown' detailing the potential risks. Always include at least two risks, even for viable-seeming transactions. Examples include 'Price Slippage', 'Gas Fee Volatility', 'Contract Vulnerability', or 'Market Fluctuation'. For each risk, provide a short description.
+    5.  **Rationale**: Provide a concise 'rationale' for your overall viability decision, taking the risks into account.
     `,
 });
 

@@ -1,11 +1,10 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, Zap, Search, CheckCircle, XCircle } from 'lucide-react';
+import { Loader2, Zap, Search, CheckCircle, XCircle, Shield, AlertTriangle } from 'lucide-react';
 import { Line, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import ReactMarkdown from 'react-markdown';
 
@@ -23,6 +22,7 @@ import { executeTransaction } from '@/services/blockchain-simulator';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Skeleton } from './ui/skeleton';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from './ui/chart';
+import { Badge } from './ui/badge';
 
 const formSchema = z.object({
   asset: z.string().min(1, 'Please select an asset.'),
@@ -141,6 +141,12 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
       setIsExecuting(false);
     }
   };
+
+  const getRiskColor = (score: number) => {
+    if (score <= 3) return 'text-green-500'; // Low risk
+    if (score <= 7) return 'text-yellow-500'; // Medium risk
+    return 'text-red-500'; // High risk
+  };
   
   return (
     <div className="space-y-8">
@@ -244,44 +250,69 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
                   </AlertDescription>
                 </Alert>
 
-                <div>
-                    <h3 className="font-semibold mb-2">Simulated PnL</h3>
-                     <ChartContainer config={{
-                        profit: {
-                          label: "Profit",
-                          color: analysisResult.viability === 'Viable' ? "hsl(var(--chart-2))" : "hsl(var(--destructive))",
-                        },
-                      }} className="h-[250px] w-full">
-                      <ResponsiveContainer>
-                        <LineChart data={analysisResult.pnlData}>
-                          <CartesianGrid vertical={false} />
-                          <XAxis 
-                            dataKey="time" 
-                            tickLine={false} 
-                            axisLine={false} 
-                            tickMargin={8} 
-                            tickFormatter={(value) => `T+${value}`}
-                          />
-                           <YAxis 
-                            tickLine={false} 
-                            axisLine={false} 
-                            tickMargin={8}
-                            tickFormatter={(value) => `$${value.toLocaleString()}`}
-                          />
-                          <Tooltip
-                            cursor={false}
-                            content={<ChartTooltipContent indicator="dot" />}
-                          />
-                          <Line
-                            dataKey="profit"
-                            type="natural"
-                            stroke="var(--color-profit)"
-                            strokeWidth={2}
-                            dot={false}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </ChartContainer>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Shield />
+                        Risk Analysis
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-baseline gap-2">
+                        <span className={`text-3xl font-bold ${getRiskColor(analysisResult.riskScore)}`}>{analysisResult.riskScore}</span>
+                        <span className="text-sm text-muted-foreground">/ 10</span>
+                      </div>
+                       <div className="mt-2 space-y-2">
+                        {analysisResult.riskBreakdown.map((risk, index) => (
+                           <div key={index} className="text-xs">
+                             <p className="font-semibold flex items-center gap-1.5"><AlertTriangle className="h-3 w-3 text-yellow-500" />{risk.risk}</p>
+                             <p className="text-muted-foreground pl-5">{risk.description}</p>
+                           </div>
+                         ))}
+                       </div>
+                    </CardContent>
+                  </Card>
+                   <div>
+                      <h3 className="font-semibold mb-2 text-lg">Simulated PnL</h3>
+                       <ChartContainer config={{
+                          profit: {
+                            label: "Profit",
+                            color: analysisResult.viability === 'Viable' ? "hsl(var(--chart-2))" : "hsl(var(--destructive))",
+                          },
+                        }} className="h-[200px] w-full">
+                        <ResponsiveContainer>
+                          <LineChart data={analysisResult.pnlData}>
+                            <CartesianGrid vertical={false} />
+                            <XAxis 
+                              dataKey="time" 
+                              tickLine={false} 
+                              axisLine={false} 
+                              tickMargin={8} 
+                              tickFormatter={(value) => `T+${value}`}
+                            />
+                             <YAxis 
+                              tickLine={false} 
+                              axisLine={false} 
+                              tickMargin={8}
+                              tickFormatter={(value) => `$${value.toLocaleString()}`}
+                              width={60}
+                            />
+                            <Tooltip
+                              cursor={false}
+                              content={<ChartTooltipContent indicator="dot" />}
+                            />
+                            <Line
+                              dataKey="profit"
+                              type="natural"
+                              stroke="var(--color-profit)"
+                              strokeWidth={2}
+                              dot={false}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </ChartContainer>
+                  </div>
                 </div>
                 
                 <Button onClick={handleExecute} disabled={isExecuting || analysisResult.viability === 'Not Viable'} className="w-full">
