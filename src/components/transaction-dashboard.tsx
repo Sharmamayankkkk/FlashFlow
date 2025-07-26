@@ -27,7 +27,7 @@ export function TransactionDashboard({ transactions }: TransactionDashboardProps
         <CardDescription>Monitor live and past flash loan transactions.</CardDescription>
       </CardHeader>
       <CardContent className="flex-grow p-0">
-          <ScrollArea className="h-[500px] xl:h-auto">
+          <ScrollArea className="h-[400px]">
             <Table>
                 <TableHeader className="sticky top-0 bg-card z-10">
                 <TableRow>

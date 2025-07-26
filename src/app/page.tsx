@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { Header } from '@/components/header';
 import { FlashLoanBuilder } from '@/components/flash-loan-builder';
 import { TransactionDashboard } from '@/components/transaction-dashboard';
+import { PageWrapper } from '@/components/page-wrapper';
+import { InfoCards } from '@/components/info-cards';
 import type { Transaction } from '@/types';
 
 export default function Home() {
@@ -41,18 +43,16 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <Header />
-      <main className="flex-grow container mx-auto p-4 md:p-8">
-        <div className="grid grid-cols-1 xl:grid-cols-5 gap-8 items-start">
-          <div className="xl:col-span-3">
-            <FlashLoanBuilder onExecuteLoan={addTransaction} />
-          </div>
-          <div className="xl:col-span-2">
-            <TransactionDashboard transactions={transactions} />
-          </div>
+    <PageWrapper>
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
+        <div className="lg:col-span-3 space-y-8">
+          <FlashLoanBuilder onExecuteLoan={addTransaction} />
         </div>
-      </main>
-    </div>
+        <div className="lg:col-span-2 space-y-8">
+          <TransactionDashboard transactions={transactions} />
+          <InfoCards />
+        </div>
+      </div>
+    </PageWrapper>
   );
 }

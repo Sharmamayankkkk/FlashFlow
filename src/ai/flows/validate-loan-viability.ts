@@ -45,6 +45,10 @@ const prompt = ai.definePrompt({
 
   In addition, generate a series of 10-15 data points to simulate the profit and loss over the very short duration of the flash loan. This data will be used to create a chart.
 
+  - If you determine the transaction is viable, the profitAndLossData should show a clear upward trend, ending in a positive profit.
+  - If the transaction is not viable, the data should show a downward trend, ending in a loss.
+  - The "time" for the data points should be a simple sequence, like 0, 1, 2, 3...
+
   Asset: {{{asset}}}
   Amount: {{{amount}}}
   Execution Logic: {{{executionLogic}}}
