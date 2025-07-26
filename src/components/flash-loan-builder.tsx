@@ -32,7 +32,6 @@ interface FlashLoanBuilderProps {
 export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
   const { toast } = useToast();
   const [isExecuting, setIsExecuting] = useState(false);
-  const [executionLogic, setExecutionLogic] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -51,47 +50,28 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
       form.setValue('strategy', `Borrow ${watchedAmount.toLocaleString()} ${watchedAsset}, perform an arbitrage trade on a DEX like Uniswap for a stablecoin like DAI, then repay the loan on a lending protocol like Aave.`);
     }
   }, [watchedAsset, watchedAmount, form.setValue]);
-
-  const onGenerateCode: SubmitHandler<FormValues> = async (data) => {
-    setIsExecuting(true);
-    setExecutionLogic(null);
-    try {
-      const logicResult = await generateExecutionLogic({
-        asset: data.asset,
-        amount: Number(data.amount),
-        strategy: data.strategy,
-      });
-      setExecutionLogic(logicResult.executionLogic);
-    } catch (error) {
-      console.error('Code generation failed:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Code Generation Failed',
-        description: 'An unexpected error occurred while generating the code.',
-      });
-    } finally {
-      setIsExecuting(false);
-    }
-  };
   
-  const handleExecute = async () => {
-    if (executionLogic) {
+  const handleExecute: SubmitHandler<FormValues> = async (data) => {
       setIsExecuting(true);
       try {
-        // Here you would call the real blockchain simulation service
+        const logicResult = await generateExecutionLogic({
+            asset: data.asset,
+            amount: data.amount,
+            strategy: data.strategy
+        });
+
         const result = await executeTransaction({
-            executionLogic
+            executionLogic: logicResult.executionLogic
         });
 
         if (result.success) {
-            const values = form.getValues();
             onExecuteLoan({
-              asset: values.asset,
-              amount: values.amount,
+              asset: data.asset,
+              amount: data.amount,
             });
             toast({
               title: 'Transaction Successful',
-              description: `Profit: ${result.profit} ETH`,
+              description: `Profit: ${result.profit?.toFixed(4)} ETH`,
             });
         } else {
              toast({
@@ -101,6 +81,7 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
             });
         }
       } catch (error) {
+        console.error(error);
         toast({
             variant: 'destructive',
             title: 'Execution Error',
@@ -109,25 +90,13 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
       } finally {
           setIsExecuting(false);
       }
-      handleClear();
-    } else {
-        toast({
-            variant: 'destructive',
-            title: 'Execution Failed',
-            description: 'Please generate the execution logic first.',
-        });
-    }
-  };
-  
-  const handleClear = () => {
       form.reset({
         asset: '',
         amount: 1000,
         strategy: '',
       });
-      setExecutionLogic(null);
   };
-
+  
   return (
     <Card className="h-full">
       <CardHeader>
@@ -136,7 +105,7 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onGenerateCode)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(handleExecute)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -195,29 +164,11 @@ export function FlashLoanBuilder({ onExecuteLoan }: FlashLoanBuilderProps) {
             />
 
             <Button type="submit" disabled={isExecuting} className="w-full">
-              {isExecuting && !executionLogic ? <Loader2 className="animate-spin" /> : 'Generate Execution Logic'}
+              {isExecuting ? <Loader2 className="animate-spin" /> : <Zap />}
+              Execute Transaction
             </Button>
           </form>
         </Form>
-        
-        {executionLogic && (
-             <div className="mt-6 animate-in fade-in-50">
-                <Textarea
-                    readOnly
-                    value={executionLogic}
-                    className="min-h-[200px] text-xs font-mono bg-muted"
-                />
-                <div className="mt-6 flex flex-col sm:flex-row gap-4">
-                    <Button onClick={handleClear} variant="outline" className="w-full">
-                        Clear
-                    </Button>
-                    <Button onClick={handleExecute} disabled={isExecuting} className="w-full">
-                        {isExecuting ? <Loader2 className="animate-spin" /> : <Zap />}
-                        Execute Transaction
-                    </Button>
-                </div>
-            </div>
-        )}
       </CardContent>
     </Card>
   );
