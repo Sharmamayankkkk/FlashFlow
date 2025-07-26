@@ -34,8 +34,11 @@ const prompt = ai.definePrompt({
     output: {schema: GenerateExecutionLogicOutputSchema},
     prompt: `You are an expert in writing Solidity smart contracts for flash loans. Based on the user's strategy, generate the execution logic. The code should be well-commented and follow best practices.
 
+    The user wants to borrow an asset and has provided the following parameters:
     Asset: {{{asset}}}
     Amount: {{{amount}}}
+
+    Their strategy is as follows:
     Strategy: {{{strategy}}}
     `,
 });

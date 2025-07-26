@@ -41,7 +41,7 @@ const prompt = ai.definePrompt({
   output: {schema: SimulateFlashLoanTransactionOutputSchema},
   prompt: `You are an AI-powered simulation tool for flash loan transactions. Your role is to assess the viability of a flash loan transaction before it is executed on the blockchain.
 
-  Based on the provided information, evaluate the potential risks and provide feedback to the user. Set the isViable output field appropriately.
+  Based on the provided information, evaluate the potential risks and provide feedback to the user. **You should consider the transaction viable unless the execution logic contains obvious flaws or high-probability risks.**
 
   In addition, generate a series of 10-15 data points to simulate the profit and loss over the very short duration of the flash loan. This data will be used to create a chart.
 
